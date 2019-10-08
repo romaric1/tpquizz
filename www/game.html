@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<title>TP QUIZZ</title>
+<head>
+    <link rel="stylesheet" type="text/css" href="css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+
+    <script type="text/javascript" src="cordova.js"></script>
+
+    <script type="text/javascript">
+        function scan() {
+            console.log("clicked");
+            cordova.plugins.barcodeScanner.scan(function (result) {
+                    var url = "questions/reponse.txt";
+                    xmlhttp.onreadystatechange = function () {
+                        if (xmlhttp.readyState == 4 || xmlhttp.readyState == "complete") {
+
+                            if (xmlhttp.responseText == result.text) {
+                                reponse.appendChild(document.createTextNode(result.text));
+                                alert("Bonne reponse");
+                            } else
+                                alert("Mauvaise reponse");
+                        }
+                    }
+                    xmlhttp.open("GET", url, true);
+                    xmlhttp.send(null);
+
+                }, function (error) {
+                    //error callback
+                    alert(JSON.stringify(error));
+                }
+            );
+        }
+
+
+        // Fonction lancée au début du jeu : connexion à une partie
+        // Chargement de la question et affichage
+        /*function rejoindre() {
+            console.log("toto")
+            if (arguments.callee.done) return;
+            arguments.callee.done = true;
+
+            var question = document.getElementById("question");
+            if (window.XMLHttpRequest) {
+                xmlhttp = new XMLHttpRequest();
+            }
+
+            var url = "questions/question.txt";
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 || xmlhttp.readyState == "complete") {
+                    question.appendChild(document.createTextNode(xmlhttp.responseText));
+                }
+            }
+            xmlhttp.open("GET", url, true);
+            xmlhttp.send(null);
+
+        }
+        */
+    </script>
+
+
+    <style>
+        #reponse {
+            background-color: darkseagreen;
+            color: white;
+            font-weight: bold;
+            font-size: 2em;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<!--<body onload="rejoindre()">
+  <div class="question">
+    <p  ></p>
+    <p id="question" class="subtext"></p>
+    <p></p>
+    <p></p>
+    <a onclick="scan()" class="button button-action button-rounded">Scanner la réponse </a>
+    <p></p>
+    <p></p>
+    <span id="reponse"></span>
+  </div>
+-->
+<script>
+    function init() {
+        document.getElementById("submit").addEventListener("click", submit);
+        let levelquestion = 0;
+
+        function submit() {
+
+
+            let firstcategory = document.getElementById("1").value;
+            let secondcategory = document.getElementById("2").value;
+            let thirdcategory = document.getElementById("3").value;
+            let fourthcategory = document.getElementById("4").value;
+            console.log(firstcategory)
+
+        }
+
+        var database = function database() {
+            var db = null;
+            document.addEventListener('deviceready', function () {
+                db = window.sqlitePlugin.openDatabase({
+                    name: 'my.db',
+                    location: 'default',
+                });
+            });
+            return db;
+        }
+</script>
+
+<body onload="init()">
+
+<div class="question">
+
+    <form id="category" action="questionvue.html">
+
+
+        <br><STRONG>Différentes catégories de questions</STRONG> <br>
+        <INPUT TYPE="radio" NAME="workingTogether" VALUE="true" id="1">trouver les personnes qui travaillent ensemble
+        <br>
+        <INPUT TYPE="radio" NAME="writer" VALUE="true" id="2">trouver la personne qui a écrit l'article <br>
+        <INPUT TYPE="radio" NAME="personProject" VALUE="true" id="3"> trouver la personne qui travaille sur le projet
+        <br>
+
+        <INPUT TYPE="radio" NAME="makingObject" VALUE="true" id="4">trouver la personne qui a réalisé l'objet<br>
+
+        <br> <input type="submit" value="Envoyer" id="submit"/>
+    </form>
+    <span id="reponse"></span>
+
+</div>
+
+</body>
+
+
+</html>
+

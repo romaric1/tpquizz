@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scanner reponse</title>
+    <link rel="stylesheet" type="text/css" href="css/index.css"/>
+    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+    <script type="text/javascript" src="cordova.js"></script>
+
+</head>
+<body>
+
+<script type="text/javascript">
+
+
+    scan();
+
+    function scan() {
+        console.log("clicked");
+        cordova.plugins.barcodeScanner.scan(function (result) {
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 || xmlhttp.readyState == "complete") {
+
+                        if (xmlhttp.responseText == result.text) {
+                            reponse.appendChild(document.createTextNode(result.text));
+                            alert("Bonne reponse");
+                            // si la réponse est juste en BDD
+                            // TODO incrémenter difficultequestion et nbreponses
+                            // TODO renvoie vers choix des catégories
+                            var choice = document.createElement("button");   // Create a <button> element
+                            choice.innerHTML = "choix des questions";                   // Insert text
+                            document.body.appendChild(choice);
+                            choice.setAttribute("id", "button1");
+                            document.getElementById("button1").onclick = function () {
+                                location.href = "game.html";
+                            };
+
+
+                        } else
+                        // TODO sinon retour a scanner réponse
+                            alert("Mauvaise reponse");
+                        var scanner = document.createElement("button");   // Create a <button> element
+                        scanner.innerHTML = "scanner réponse";                   // Insert text
+                        document.body.appendChild(scanner);
+                        scanner.setAttribute("id", "scanner");
+                        document.getElementById("scanner").onclick = function () {
+                            location.href = "scannerreponse.html";
+                        };
+                    }
+                }
+                //  xmlhttp.open("GET", url, true);
+                xmlhttp.send(null);
+
+            }, function (error) {
+                //error callback
+                alert(JSON.stringify(error));
+            }
+        );
+    }
+
+
+</script>
+
+</body>
+</html>
