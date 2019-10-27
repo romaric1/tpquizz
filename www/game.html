@@ -97,17 +97,9 @@
             console.log(firstcategory)
 
         }
+    }
 
-        var database = function database() {
-            var db = null;
-            document.addEventListener('deviceready', function () {
-                db = window.sqlitePlugin.openDatabase({
-                    name: 'my.db',
-                    location: 'default',
-                });
-            });
-            return db;
-        }
+    
 </script>
 
 <body onload="init()">

@@ -1,113 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="css/index.css"/>
-    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="css/buttons.css" />
     <script type="text/javascript" src="cordova.js"></script>
-    <title>Question for the player </title>
-</head>
-<body onload="getURL()">
+    <title>Question for the player</title>
+  </head>
+  <body>
+    <div class="question"></div>
+  </body>
 
-<div class="question">
-
-</div>
-</body>
-
-<style>
+  <style>
     #div1 {
-        position: absolute; /* position in the center of the screen */
-        left: 50%;
-        top: 30%;
-        height: 50px; /* text area height */
-        width: 225px; /* text area width */
-        text-align: center;
-        padding: 180px 0px 0px 0px; /* image height is 200px (bottom 20px are overlapped with text) */
-        margin: -115px 0px 0px -112px; /* offset vertical: half of image height and text area height */
-        /* offset horizontal: half of text area width */
+      position: absolute; /* position in the center of the screen */
+      left: 50%;
+      top: 30%;
+      height: 50px; /* text area height */
+      width: 225px; /* text area width */
+      text-align: center;
+      padding: 180px 0px 0px 0px; /* image height is 200px (bottom 20px are overlapped with text) */
+      margin: -115px 0px 0px -112px; /* offset vertical: half of image height and text area height */
+      /* offset horizontal: half of text area width */
     }
 
     #button1 {
-        position: absolute; /* position in the center of the screen */
-        left: 55%;
-        top: 50%;
-
+      position: absolute; /* position in the center of the screen */
+      left: 55%;
+      top: 50%;
     }
 
     #infostravaux {
-        position: absolute; /* position in the center of the screen */
-        left: 20%;
-        top: 50%;
+      position: absolute; /* position in the center of the screen */
+      left: 20%;
+      top: 50%;
+    }
+  </style>
 
+  <script>
+ 
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    function getTypeQuestion() {
+      switch (window.location.search) {
+        case "?workingTogether=true":
+          return 1;
+        case "?writer=true":
+          return 2;
+        case "?personProject=true":
+          return 3;
+        case "?makingObject=true":
+          return 4;
+      }
     }
 
-</style>
+    request();
 
-<script>   function getURL() {
-    // alert("The URL of this page is: " + window.location.search);
-
-    switch (window.location.search) {
-        case '?workingTogether=true':
-            return 'workingTogether'
-        case '?writer=true':
-            return 'writer'
-        case '?personProject=true':
-            return 'personProject'
-        case '?makingObject=true':
-            return 'makingObject'
-    }
+    //Database request (récupérer les questions de la table correspondante)
+    function request() {
+      var reponse = new Map();
 
 
-}
+      //Initialisation
+      reponse.set("pose", 0);
+      reponse.set("difficultequestion", 5);
 
-request();
-
-//Database request (récupérer les questions de la table correspondante)
-function request() {
-
-    //jonathan request
-    var reponse = new Map();
-
-    reponse.set("pose", 0);
-    reponse.set("difficultequestion", 5);
-
-    //Si vérifier si en BDD posé == 0 et difficultequestion < 6
-    if (reponse.get("pose") == 0 && reponse.get("difficultequestion") < 6) {
-
+      //Si vérifier si  posé == 0 et difficultequestion < 6
+      if (reponse.get("pose") == 0 && reponse.get("difficultequestion") < 6) {
         // TODO récupérer la question BDD
         // TODO database request posé a 1 Jonathan
 
         // AFFICHER la question faible au joueur
+
+       
         var myDiv = document.createElement("div");
-        var myContent = document.createTextNode("Ceci est la première question ?!!!");
+        var myContent = document.createTextNode(
+"toto"
+         
+        );
         myDiv.appendChild(myContent);
         document.body.appendChild(myDiv);
         myDiv.setAttribute("id", "div1");
         // creation du boutton
 
-        var scanner = document.createElement("button");   // Create a <button> element
-        scanner.innerHTML = "scanner reponse";                   // Insert text
+        var scanner = document.createElement("button"); // Create a <button> element
+        scanner.innerHTML = "scanner reponse"; // Insert text
         document.body.appendChild(scanner);
         scanner.setAttribute("id", "button1");
-        document.getElementById("button1").onclick = function () {
-            location.href = "scannerreponse.html";
+        document.getElementById("button1").onclick = function() {
+          location.href = "scannerreponse.html";
         };
 
-        var scanner = document.createElement("button");   // Create a <button> element
-        scanner.innerHTML = "infos travaux";                   // Insert text
+        var scanner = document.createElement("button"); // Create a <button> element
+        scanner.innerHTML = "infos travaux"; // Insert text
         document.body.appendChild(scanner);
         scanner.setAttribute("id", "infostravaux");
-        document.getElementById("infostravaux").onclick = function () {
-            location.href = "infostravaux.html";
+        document.getElementById("infostravaux").onclick = function() {
+          location.href = "infostravaux.html";
         };
+      }
+    }
+
+    function onDeviceReady() {
+      var db = window.openDatabase("Database", "1.0", "Quizz", 200000);
+      db.transaction(populateDB, errorCB, successCB);
+      
+      db.transaction(retrieveDB, errorCB);
+    }
+    function populateDB(tx) {
+      tx.executeSql("DROP TABLE IF EXISTS Joueur");
+      tx.executeSql("DROP TABLE IF EXISTS ReponseJoueur");
+      tx.executeSql("DROP TABLE IF EXISTS Reponse");
+      tx.executeSql("DROP TABLE IF EXISTS Question");
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS Joueur (id unique, pseudo,niveauJoueur,nbBonneReponses)"
+      );
+
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS ReponseJoueur (id unique, reponseJoueur,id_joueur,id_question,tempsReponse)"
+      );
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS Reponse (id unique, reponse,id_question)"
+      );
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS Question (id unique, typeQuestion,niveauQuestion,question)"
+      );
+
+      tx.executeSql(
+        'INSERT INTO Joueur (id, pseudo,niveauJoueur,nbBonneReponses) VALUES (0, "romaric",0,0)'
+      );
+      tx.executeSql(
+        'INSERT INTO Joueur (id, pseudo,niveauJoueur,nbBonneReponses) VALUES (1, "jonathan",0,0)'
+      );
+
+      tx.executeSql(
+        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (1, 1,1,"Ces deux personnes travaillent ensemble sur un robot humanoïde?")'
+      );
+      tx.executeSql(
+        "INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (2, 2,1,\"Quels sont les deux premiers auteurs de l'article 'A dynamic scenario by remote supervision: a serious game in the museum with a Nao robot' ? résumé de l'article :Cet article présente une nouvelle approche pour concevoir et superviser une expérience interactive. L'approche est mise en œuvre en créant un serious game avec un robot Nao. Ce jeu permet aux jeunes de découvrir de façon ludique les artefacts ethnographiques du musée d'histoire naturelle de La Rochelle. La phase de conception du jeu est divisée en deux étapes. \")"
+      );
+      tx.executeSql(
+        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (3, 3,1,"Quelle est la personne qui travaille sur la création d\'un model generique pour programmer un robot ?")'
+      );
+      tx.executeSql(
+        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (4, 4,1,"Quelle est le fabricant de cet objet ?")'
+      );
+
+      tx.executeSql(
+        'INSERT INTO Reponse (id, reponse,id_question) VALUES (1, "Monsieur Revel et Madame Prigent",1)'
+      );
+      tx.executeSql(
+        'INSERT INTO Reponse (id, reponse,id_question) VALUES (2, "Damien Mondou et Madame Prigent",2)'
+      );
+      tx.executeSql(
+        'INSERT INTO Reponse (id, reponse,id_question) VALUES (3, "Damien Mondou",3)'
+      );
+      tx.executeSql(
+        'INSERT INTO Reponse (id, reponse,id_question) VALUES (4, "SoftBank Robotics",4)'
+      );
+    }
+
+    function errorCB(err) {
+      alert("Error processing SQL: " + err.message);
+    }
+
+    function successCB() {
+      //alert("success!");
+    }
+
+
+        
+    function querySuccess(tx, results) {
+  
+ for (var i=0; i<results.rows.length; i++){
+   alert("Row = " + i + " ID = " + results.rows.item(i).id + " Data =  " + results.rows.item(i).pseudo);
+}
+
+    }
+    function retrieveDB(tx) {
+        tx.executeSql('SELECT *  FROM Joueur', [], querySuccess, errorCB);
+
 
 
     }
 
-    console.log(getURL());
-}
-
-</script>
+  
 
 
+  </script>
 </html>
