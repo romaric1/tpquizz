@@ -38,7 +38,6 @@
   </style>
 
   <script>
- 
     document.addEventListener("deviceready", onDeviceReady, false);
 
     function getTypeQuestion() {
@@ -54,12 +53,9 @@
       }
     }
 
-    request();
-
     //Database request (récupérer les questions de la table correspondante)
-    function request() {
+    function request(question) {
       var reponse = new Map();
-
 
       //Initialisation
       reponse.set("pose", 0);
@@ -72,12 +68,8 @@
 
         // AFFICHER la question faible au joueur
 
-       
         var myDiv = document.createElement("div");
-        var myContent = document.createTextNode(
-"toto"
-         
-        );
+        var myContent = document.createTextNode(question);
         myDiv.appendChild(myContent);
         document.body.appendChild(myDiv);
         myDiv.setAttribute("id", "div1");
@@ -104,7 +96,7 @@
     function onDeviceReady() {
       var db = window.openDatabase("Database", "1.0", "Quizz", 200000);
       db.transaction(populateDB, errorCB, successCB);
-      
+
       db.transaction(retrieveDB, errorCB);
     }
     function populateDB(tx) {
@@ -134,7 +126,7 @@
       );
 
       tx.executeSql(
-        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (1, 1,1,"Ces deux personnes travaillent ensemble sur un robot humanoïde?")'
+        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (1, 1,1,"Quelles sont les deux personnes travaillent ensemble sur un robot humanoïde?")'
       );
       tx.executeSql(
         "INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (2, 2,1,\"Quels sont les deux premiers auteurs de l'article 'A dynamic scenario by remote supervision: a serious game in the museum with a Nao robot' ? résumé de l'article :Cet article présente une nouvelle approche pour concevoir et superviser une expérience interactive. L'approche est mise en œuvre en créant un serious game avec un robot Nao. Ce jeu permet aux jeunes de découvrir de façon ludique les artefacts ethnographiques du musée d'histoire naturelle de La Rochelle. La phase de conception du jeu est divisée en deux étapes. \")"
@@ -168,24 +160,16 @@
       //alert("success!");
     }
 
-
-        
     function querySuccess(tx, results) {
-  
- for (var i=0; i<results.rows.length; i++){
-   alert("Row = " + i + " ID = " + results.rows.item(i).id + " Data =  " + results.rows.item(i).pseudo);
-}
-
+      request(results.rows.item(0).question);
     }
     function retrieveDB(tx) {
-        tx.executeSql('SELECT *  FROM Joueur', [], querySuccess, errorCB);
-
-
-
+      tx.executeSql(
+        "SELECT *  FROM Question where id = " + getTypeQuestion(),
+        [],
+        querySuccess,
+        errorCB
+      );
     }
-
-  
-
-
   </script>
 </html>

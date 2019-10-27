@@ -1,51 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Infos travaux</title>
-    <link rel="stylesheet" type="text/css" href="css/index.css"/>
-    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+
     <script type="text/javascript" src="cordova.js"></script>
-</head>
-<body>
+  </head>
+  <body>
+    <style>
+      #div1 {
+        position: absolute; /* position in the center of the screen */
+        left: 50%;
+        top: 30%;
+        height: 50px; /* text area height */
+        width: 225px; /* text area width */
+        text-align: center;
+        padding: 180px 0px 0px 0px; /* image height is 200px (bottom 20px are overlapped with text) */
+        margin: -115px 0px 0px -112px; /* offset vertical: half of image height and text area height */
+        /* offset horizontal: half of text area width */
+      }
 
+      #scanner {
+        position: absolute; /* position in the center of the screen */
+        left: 35%;
+        top: 50%;
+      }
+    </style>
 
-<script>
-    scan();
+    <script>
+      document.addEventListener("deviceready", scan, false);
 
-    function scan() {
-        console.log("clicked");
-        cordova.plugins.barcodeScanner.scan(function (result) {
-                var url = "questions/reponse.txt";
-                xmlhttp.onreadystatechange = function () {
-                    if (xmlhttp.readyState == 4 || xmlhttp.readyState == "complete") {
+      function button() {
+        var scanner = document.createElement("button"); // Create a <button> element
+        scanner.innerHTML = "scanner réponse"; // Insert text
+        document.body.appendChild(scanner);
+        scanner.setAttribute("id", "scanner");
+        document.getElementById("scanner").onclick = function() {
+          location.href = "scannerreponse.html";
+        };
+      }
 
-                        if (xmlhttp.responseText == result.text) {
-                            reponse.appendChild(document.createTextNode(result.text));
-                            alert("Bonne reponse");
-                        } else
-                            alert("Mauvaise reponse");
-                    }
-                }
-                xmlhttp.open("GET", url, true);
-                xmlhttp.send(null);
-
-            }, function (error) {
-                //error callback
-                alert(JSON.stringify(error));
-            }
+      function scan() {
+        cordova.plugins.barcodeScanner.scan(
+          function(result) {
+            var myDiv = document.createElement("div");
+            var myContent = document.createTextNode(result.text);
+            myDiv.appendChild(myContent);
+            document.body.appendChild(myDiv);
+            myDiv.setAttribute("id", "div1");
+            button();
+          },
+          function(error) {
+            alert("Scanning failed: " + error);
+          }
         );
-    }
-
-    var scanner = document.createElement("button");   // Create a <button> element
-    scanner.innerHTML = "scanner réponse";                   // Insert text
-    document.body.appendChild(scanner);
-    scanner.setAttribute("id", "button1");
-    document.getElementById("button1").onclick = function () {
-        location.href = "scannerreponse.html";
-    };
-
-
-</script>
-</body>
+      }
+    </script>
+  </body>
 </html>
