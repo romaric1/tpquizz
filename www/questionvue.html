@@ -1,175 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" type="text/css" href="css/index.css" />
-    <link rel="stylesheet" type="text/css" href="css/buttons.css" />
-    <script type="text/javascript" src="cordova.js"></script>
-    <title>Question for the player</title>
-  </head>
-  <body>
-    <div class="question"></div>
-  </body>
+<head>
+  <title>Question for the player</title>
+  <meta charset="UTF-8"/>
 
-  <style>
-    #div1 {
-      position: absolute; /* position in the center of the screen */
-      left: 50%;
-      top: 30%;
-      height: 50px; /* text area height */
-      width: 225px; /* text area width */
-      text-align: center;
-      padding: 180px 0px 0px 0px; /* image height is 200px (bottom 20px are overlapped with text) */
-      margin: -115px 0px 0px -112px; /* offset vertical: half of image height and text area height */
-      /* offset horizontal: half of text area width */
+  <link rel="stylesheet" type="text/css" href="css/index.css"/>
+  <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+  <link rel="stylesheet" type="text/css" href="css/questionvue.css">
+
+  <script type="text/javascript" src="cordova.js"></script>
+</head>
+
+<body>
+<!--<div id="div1" class="question"></div>-->
+<form>
+  <input id="infostravaux" type="button" value="Scanner informations">
+  <input id="button1" type="button" value="Scanner réponse">
+</form>
+
+<div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+  </div>
+</div>
+</body>
+
+<script>
+  document.addEventListener("deviceready", onDeviceReady, false);
+
+  function onDeviceReady() {
+    let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
+    db.transaction(retrieveDB, errorCB);
+  }
+
+  /**
+   * Récupération de toutes les questions de la catégorie sélectionnée
+   */
+  function retrieveDB(tx) {
+    tx.executeSql("SELECT * FROM Question WHERE typeQuestion = ?", [getTypeQuestion()], selectQuestion, errorCB);
+  }
+
+  /**
+   * Check l'url pour définir quelle catégorie à été sélectionnée
+   */
+  function getTypeQuestion() {
+    switch (window.location.search) {
+      case "?questionCategory=workingTogether":
+        return 1;
+      case "?questionCategory=writer":
+        return 2;
+      case "?questionCategory=personProject":
+        return 3;
+      case "?questionCategory=makingObject":
+        return 4;
     }
+  }
 
-    #button1 {
-      position: absolute; /* position in the center of the screen */
-      left: 55%;
-      top: 50%;
-    }
+  let selectedQuestion;
 
-    #infostravaux {
-      position: absolute; /* position in the center of the screen */
-      left: 20%;
-      top: 50%;
-    }
-  </style>
+  /**
+   * Choisi et affiche une question adapté au niveau du joueur
+   */
+  function selectQuestion(tx, results) {
+    let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
 
-  <script>
-    document.addEventListener("deviceready", onDeviceReady, false);
+    let questions = Array.from(results.rows);
 
-    function getTypeQuestion() {
-      switch (window.location.search) {
-        case "?workingTogether=true":
-          return 1;
-        case "?writer=true":
-          return 2;
-        case "?personProject=true":
-          return 3;
-        case "?makingObject=true":
-          return 4;
+    db.transaction(function (tx) {
+      tx.executeSql("SELECT niveauJoueur FROM Joueur WHERE id = ?", [getCookie("userId")], function (tx, resultSet) {
+        selectedQuestion = findBestQuestion(resultSet.rows.item(0).niveauJoueur, questions);
+        questions.splice(questions.indexOf(selectedQuestion), 1);
+        displayQuestion(selectedQuestion);
+        // Todo : démarrer un timer pour observer le temps passé sur la question
+      });
+    }, errorCB);
+  }
+
+  function getCookie(name) {
+    let value = "; " + document.cookie;
+    let parts = value.split("; " + name + "=");
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
+  /**
+   * Recherche la question la plus adapté pour le niveau du joueur
+   * @param playerLevel le niveau du joueur
+   * @param questions la liste des questions dans la catégorie sélectionnée
+   */
+  function findBestQuestion(playerLevel, questions) {
+
+    let goodQuestionsList = [];
+
+    if (questions.length !== 0) {
+      questions.forEach(function (question) {
+        if (question.niveauQuestion === playerLevel) {
+          goodQuestionsList.push(question);
+        }
+      });
+
+      let notFind = false;
+      let difficultyDifference = 1;
+
+      // Si aucune question du niveau du joueur ne correspond,
+      // alors on cherche les questions se rapprochant le plus de ce niveau
+      while (goodQuestionsList.length === 0 || notFind === true) {
+        if (difficultyDifference < 5) {
+          questions.forEach(function (question) {
+            if (question.niveauQuestion === (playerLevel + difficultyDifference) || question.niveauQuestion === (playerLevel - difficultyDifference)) {
+              goodQuestionsList.push(question);
+            }
+          });
+          difficultyDifference++;
+        } else {
+          notFind = true;
+        }
+      }
+
+      if (notFind) {
+        return null;
+      } else {
+        return goodQuestionsList[Math.floor(Math.random() * goodQuestionsList.length)];
       }
     }
 
-    //Database request (récupérer les questions de la table correspondante)
-    function request(question) {
-      var reponse = new Map();
+    return null;
+  }
 
-      //Initialisation
-      reponse.set("pose", 0);
-      reponse.set("difficultequestion", 5);
+  function displayQuestion(question) {
 
-      //Si vérifier si  posé == 0 et difficultequestion < 6
-      if (reponse.get("pose") == 0 && reponse.get("difficultequestion") < 6) {
-        // TODO récupérer la question BDD
-        // TODO database request posé a 1 Jonathan
+    let myDiv = document.createElement("div");
+    let myContent;
 
-        // AFFICHER la question faible au joueur
-
-        var myDiv = document.createElement("div");
-        var myContent = document.createTextNode(question);
-        myDiv.appendChild(myContent);
-        document.body.appendChild(myDiv);
-        myDiv.setAttribute("id", "div1");
-        // creation du boutton
-
-        var scanner = document.createElement("button"); // Create a <button> element
-        scanner.innerHTML = "scanner reponse"; // Insert text
-        document.body.appendChild(scanner);
-        scanner.setAttribute("id", "button1");
-        document.getElementById("button1").onclick = function() {
-          location.href = "scannerreponse.html";
-        };
-
-        var scanner = document.createElement("button"); // Create a <button> element
-        scanner.innerHTML = "infos travaux"; // Insert text
-        document.body.appendChild(scanner);
-        scanner.setAttribute("id", "infostravaux");
-        document.getElementById("infostravaux").onclick = function() {
-          location.href = "infostravaux.html";
-        };
-      }
+    if (question === null || question === undefined) {
+      myContent = document.createTextNode("Aucune question trouvée");
+    } else {
+      myContent = document.createTextNode(question.question);
     }
 
-    function onDeviceReady() {
-      var db = window.openDatabase("Database", "1.0", "Quizz", 200000);
-      db.transaction(populateDB, errorCB, successCB);
+    myDiv.appendChild(myContent);
+    document.body.appendChild(myDiv);
+    myDiv.setAttribute("id", "div1");
+  }
 
-      db.transaction(retrieveDB, errorCB);
+  function errorCB(err) {
+    alert("Error processing SQL: " + err.message);
+  }
+
+
+  let modal = document.getElementById("myModal");
+  let btnInfo = document.getElementById("infostravaux");
+  let btnReponse = document.getElementById("button1");
+  let span = document.getElementsByClassName("close")[0];
+
+  btnInfo.onclick = function () {
+    modal.style.display = "block";
+    scanInfo();
+  };
+
+  btnReponse.onclick = function () {
+    let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
+    db.transaction(function (tx) {
+      cordova.plugins.barcodeScanner.scan(function (result) {
+        tx.executeSql("SELECT * FROM Reponse WHERE id_question = ?", [selectedQuestion.id], function (tx, resultSet) {
+          let reponses = resultSet.rows;
+          reponses.forEach(function (reponse) {
+            if (reponse.reponse === result) {
+              console.log("Bonne réponse");
+            } else {
+              console.log("Mauvaise réponse");
+            }
+          });
+          // Todo : charger une nouvelle question
+          // Todo : enregistrer une reponseJoueur en base
+          // Todo : mise à jour du nbBonneReponses pour le joueur
+        }, errorCB);
+      });
+    });
+  };
+
+  span.onclick = function () {
+    modal.style.display = "none";
+  };
+
+  window.onclick = function (event) {
+    if (event.target === modal) {
+      modal.style.display = "none";
     }
-    function populateDB(tx) {
-      tx.executeSql("DROP TABLE IF EXISTS Joueur");
-      tx.executeSql("DROP TABLE IF EXISTS ReponseJoueur");
-      tx.executeSql("DROP TABLE IF EXISTS Reponse");
-      tx.executeSql("DROP TABLE IF EXISTS Question");
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS Joueur (id unique, pseudo,niveauJoueur,nbBonneReponses)"
-      );
+  };
 
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS ReponseJoueur (id unique, reponseJoueur,id_joueur,id_question,tempsReponse)"
-      );
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS Reponse (id unique, reponse,id_question)"
-      );
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS Question (id unique, typeQuestion,niveauQuestion,question)"
-      );
-
-      tx.executeSql(
-        'INSERT INTO Joueur (id, pseudo,niveauJoueur,nbBonneReponses) VALUES (0, "romaric",0,0)'
-      );
-      tx.executeSql(
-        'INSERT INTO Joueur (id, pseudo,niveauJoueur,nbBonneReponses) VALUES (1, "jonathan",0,0)'
-      );
-
-      tx.executeSql(
-        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (1, 1,1,"Quelles sont les deux personnes travaillent ensemble sur un robot humanoïde?")'
-      );
-      tx.executeSql(
-        "INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (2, 2,1,\"Quels sont les deux premiers auteurs de l'article 'A dynamic scenario by remote supervision: a serious game in the museum with a Nao robot' ? résumé de l'article :Cet article présente une nouvelle approche pour concevoir et superviser une expérience interactive. L'approche est mise en œuvre en créant un serious game avec un robot Nao. Ce jeu permet aux jeunes de découvrir de façon ludique les artefacts ethnographiques du musée d'histoire naturelle de La Rochelle. La phase de conception du jeu est divisée en deux étapes. \")"
-      );
-      tx.executeSql(
-        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (3, 3,1,"Quelle est la personne qui travaille sur la création d\'un model generique pour programmer un robot ?")'
-      );
-      tx.executeSql(
-        'INSERT INTO Question (id, typeQuestion,niveauQuestion,question) VALUES (4, 4,1,"Quelle est le fabricant de cet objet ?")'
-      );
-
-      tx.executeSql(
-        'INSERT INTO Reponse (id, reponse,id_question) VALUES (1, "Monsieur Revel et Madame Prigent",1)'
-      );
-      tx.executeSql(
-        'INSERT INTO Reponse (id, reponse,id_question) VALUES (2, "Damien Mondou et Madame Prigent",2)'
-      );
-      tx.executeSql(
-        'INSERT INTO Reponse (id, reponse,id_question) VALUES (3, "Damien Mondou",3)'
-      );
-      tx.executeSql(
-        'INSERT INTO Reponse (id, reponse,id_question) VALUES (4, "SoftBank Robotics",4)'
-      );
-    }
-
-    function errorCB(err) {
-      alert("Error processing SQL: " + err.message);
-    }
-
-    function successCB() {
-      //alert("success!");
-    }
-
-    function querySuccess(tx, results) {
-      request(results.rows.item(0).question);
-    }
-    function retrieveDB(tx) {
-      tx.executeSql(
-        "SELECT *  FROM Question where id = " + getTypeQuestion(),
-        [],
-        querySuccess,
-        errorCB
-      );
-    }
-  </script>
+  function scanInfo() {
+    cordova.plugins.barcodeScanner.scan(function (result) {
+              let modalContainer = document.getElementById("modal-content");
+              let modalText = document.createTextNode(result.text);
+              modalContainer.appendChild(modalText);
+            },
+            function (error) {
+              alert(JSON.stringify(error));
+            });
+  }
+</script>
 </html>

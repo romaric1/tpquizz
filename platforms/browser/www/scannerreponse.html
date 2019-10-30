@@ -1,49 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Scanner reponse</title>
-    <link rel="stylesheet" type="text/css" href="css/index.css"/>
-    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+
     <script type="text/javascript" src="cordova.js"></script>
+  </head>
+  <body>
+    <style>
+      #button1 {
+        position: absolute; /* position in the center of the screen */
+        left: 35%;
+        top: 50%;
+      }
+      #scanner {
+        position: absolute; /* position in the center of the screen */
+        left: 35%;
+        top: 50%;
+      }
+    </style>
+    <script type="text/javascript">
+      document.addEventListener("deviceready", scan, false);
 
-</head>
-<body>
+      function scan() {
+        cordova.plugins.barcodeScanner.scan(
+          function(result) {
+            alert(
+              "We got a barcode\n" +
+                "Result: " +
+                result.text +
+                "\n" +
+                "Format: " +
+                result.format +
+                "\n" +
+                "Cancelled: " +
+                result.cancelled
+            );
 
-<script type="text/javascript">
+            // si la réponse est juste en BDD
 
+            // TODO incrémenter difficultequestion et nbreponses
 
-    // si la réponse est juste en BDD
-    // incrémenter difficultequestion et nbreponses
-    // renvoie vers choix des catégories
-    //sinon retour a scanner réponse
+            // TODO renvoie vers choix des catégories
+            choice();
 
-
-    scan();
-    function scan() {
-        console.log("clicked");
-        cordova.plugins.barcodeScanner.scan(function (result) {
-                var url = "questions/reponse.txt";
-                xmlhttp.onreadystatechange = function () {
-                    if (xmlhttp.readyState == 4 || xmlhttp.readyState == "complete") {
-
-                        if (xmlhttp.responseText == result.text) {
-                            reponse.appendChild(document.createTextNode(result.text));
-                            alert("Bonne reponse");
-                        } else
-                            alert("Mauvaise reponse");
-                    }
-                }
-                xmlhttp.open("GET", url, true);
-                xmlhttp.send(null);
-
-            }, function (error) {
-                //error callback
-                alert(JSON.stringify(error));
-            }
+            // TODO sinon retour a scanner réponse
+            buttonScan();
+          },
+          function(error) {
+            alert("Scanning failed: " + error);
+          }
         );
-    }
-    </script>
+      }
 
-</body>
+      function choice() {
+        var choice = document.createElement("button"); // Create a <button> element
+        choice.innerHTML = "choix des questions"; // Insert text
+        document.body.appendChild(choice);
+        choice.setAttribute("id", "button1");
+        document.getElementById("button1").onclick = function() {
+          location.href = "game.html";
+        };
+      }
+
+      function buttonScan() {
+        var scanner = document.createElement("button"); // Create a <button> element
+        scanner.innerHTML = "scanner réponse"; // Insert text
+        document.body.appendChild(scanner);
+        scanner.setAttribute("id", "scanner");
+        document.getElementById("scanner").onclick = function() {
+          location.href = "scannerreponse.html";
+        };
+      }
+    </script>
+  </body>
 </html>

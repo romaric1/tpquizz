@@ -1,23 +1,80 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="fr">
 <head>
+    <title>Page d'accueil</title>
     <meta charset="utf-8"/>
 
     <link rel="stylesheet" type="text/css" href="css/index.css"/>
     <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
-    <title>Le mini-jeu de quizz</title>
+    <script type="text/javascript" src="cordova.js"></script>
 </head>
+
 <body>
 <div class="app">
     <h1>Quizz</h1>
     <p class="subtext">TP Mobilité et recherche d'information</p>
     <p class="subtext">Quizz rapide</p>
 
-    <p></p>
-    <a href="game.html" class="button button-action button-rounded">Commencer</a>
+    <form action="categorySelection.html">
+        <label>
+            Pseudo :
+            <input id="pseudo_input" type="text">
+            <input type="submit" onclick="triggerRegister()" value="Commencer">
+        </label>
+    </form>
 </div>
-<script type="text/javascript" src="cordova.js"></script>
+
+<script>
+    document.addEventListener("deviceready", onDeviceReady, false);
+
+    function onDeviceReady() {
+        let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
+        db.transaction(createDB, errorCB);
+    }
+
+    function createDB(tx) {
+        tx.executeSql('DROP TABLE IF EXISTS ReponseJoueur');
+        tx.executeSql('DROP TABLE IF EXISTS Joueur');
+        tx.executeSql('DROP TABLE IF EXISTS Reponse');
+        tx.executeSql('DROP TABLE IF EXISTS Question');
+
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Joueur (id integer primary key autoincrement, pseudo, niveauJoueur, nbBonneReponses)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Question (id integer primary key autoincrement, typeQuestion, niveauQuestion, question)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Reponse (id integer primary key autoincrement, reponse, id_question references Question(id))');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ReponseJoueur (id integer primary key autoincrement, reponseJoueur, id_joueur references Joueur(id), id_question references Question(id), tempsReponse)');
+
+        tx.executeSql('INSERT INTO Question (typeQuestion, niveauQuestion, question) VALUES (2, 1, "Qui a participé à l\'écriture de l\'article : « Analyse d’Images de Documents Anciens : une Approche Texture, revue Traitement du signal, Volume 24, N° 6, 2007 » ?")');
+        tx.executeSql('INSERT INTO Question (typeQuestion, niveauQuestion, question) VALUES (3, 1, "Qui développe la librairie de manipulation des treillis ?")');
+        tx.executeSql('INSERT INTO Question (typeQuestion, niveauQuestion, question) VALUES (1, 1, "Qui sont les directeurs de thèse de Damien Mondou ?")');
+        tx.executeSql('INSERT INTO Question (typeQuestion, niveauQuestion, question) VALUES (3, 2, "Qui est impliqué dans les projets Art et sciences ?")');
+        tx.executeSql('INSERT INTO Question (typeQuestion, niveauQuestion, question) VALUES (2, 2, "Qui a participé à l\'écriture de l\'article : « Une approche ontologique pour la structuration de données spatio-temporelles de trajectoires : Application à l’étude des déplacements de mammifères marins », Revue Internationale de Géomatique - International Journal of Geomatics and Spatial Analysis , Hermes-Lavoisier, vol 22/1-2012, pp 55-75 ( francophone ) (selected paper SAGEO) ?")');
+        tx.executeSql('INSERT INTO Question (typeQuestion, niveauQuestion, question) VALUES (4, 5, "Question test")');
+
+        tx.executeSql('INSERT INTO Reponse (reponse, id_question) VALUES ("Remy Mullot", 1)');
+        tx.executeSql('INSERT INTO Reponse (reponse, id_question) VALUES ("Karell Bertet", 2)');
+        tx.executeSql('INSERT INTO Reponse (reponse, id_question) VALUES ("Armelle Prigent", 3)');
+        tx.executeSql('INSERT INTO Reponse (reponse, id_question) VALUES ("Arnaud Revel", 3)');
+        tx.executeSql('INSERT INTO Reponse (reponse, id_question) VALUES ("Arnaud Revel", 4)');
+        tx.executeSql('INSERT INTO Reponse (reponse, id_question) VALUES ("Alain Bouju", 5)');
+    }
+
+    function triggerRegister() {
+        let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
+        db.transaction(registerUser, errorCB);
+    }
+
+    function registerUser(tx) {
+        let pseudo = document.getElementById("pseudo_input").value;
+        tx.executeSql('INSERT INTO Joueur (pseudo, niveauJoueur, nbBonneReponses) VALUES (? , 1, 0)', [pseudo], function (tx, resultSet) {
+            document.cookie = "userId=" + resultSet.insertId;
+        });
+    }
+
+    function errorCB(err) {
+        console.log("Error processing SQL: " + err.code);
+    }
+</script>
 
 </body>
 </html>
