@@ -5,23 +5,17 @@
     <title>Page d'accueil</title>
     <meta charset="utf-8"/>
 
-    <link rel="stylesheet" type="text/css" href="css/index.css"/>
-    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+    <!--    <link rel="stylesheet" type="text/css" href="css/index.css"/>-->
+    <!--    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>-->
+    <link rel="stylesheet" type="text/css" href="css/custom-index.css"/>
     <script type="text/javascript" src="cordova.js"></script>
 </head>
 
 <body>
 <div class="app">
-    <h1>Quizz</h1>
-    <p class="subtext">TP Mobilité et recherche d'information</p>
-    <p class="subtext">Quizz rapide</p>
-
     <form action="categorySelection.html">
-        <label>
-            Pseudo :
-            <input id="pseudo_input" type="text">
-            <input type="submit" onclick="triggerRegister()" value="Commencer">
-        </label>
+        <input id="pseudo_input" type="text" placeholder="Entrez votre pseudo" required>
+        <input type="submit" onclick="triggerRegister()" value="Commencer">
     </form>
 </div>
 

@@ -3,44 +3,39 @@
 <head>
     <title>Selection catégorie de question</title>
 
-    <link rel="stylesheet" type="text/css" href="css/index.css"/>
-    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
+<!--    <link rel="stylesheet" type="text/css" href="css/index.css"/>-->
+<!--    <link rel="stylesheet" type="text/css" href="css/buttons.css"/>-->
+    <link rel="stylesheet" type="text/css" href="css/categorySelection.css"/>
 
     <script type="text/javascript" src="cordova.js"></script>
-
-    <style type="text/css">
-        #reponse {
-            background-color: darkseagreen;
-            color: white;
-            font-weight: bold;
-            font-size: 2em;
-            text-align: center;
-        }
-    </style>
 </head>
 
 <body>
-<div class="question">
+<div class="center-div">
+
+    <p class="consigne" >Sélectionner une catégorie pour commencer</p>
+
     <form id="category" action="questionvue.html">
-        <br><STRONG>Différentes catégories de questions</STRONG> <br>
+        <input type="radio" name="questionCategory" value="workingTogether" id="1" required>
+        <label for="1">Trouver les personnes qui travaillent ensemble</label>
 
-        <input type="radio" name="questionCategory" value="workingTogether" id="1">
-        <label for="1">trouver les personnes qui travaillent ensemble</label>
-        <br>
         <input type="radio" name="questionCategory" value="writer" id="2">
-        <label for="2">trouver la personne qui a écrit l'article </label>
-        <br>
-        <input type="radio" name="questionCategory" value="personProject" id="3">
-        <label for="3"> trouver la personne qui travaille sur le projet</label>
-        <br>
-        <input type="radio" name="questionCategory" value="makingObject" id="4">
-        <label for="4">trouver la personne qui a réalisé l'objet</label>
-        <br>
+        <label for="2">Trouver la personne qui a écrit l'article </label>
 
-        <input type="submit" value="Envoyer" id="submit"/>
+        <input type="radio" name="questionCategory" value="personProject" id="3">
+        <label for="3">Trouver la personne qui travaille sur le projet</label>
+
+        <input type="radio" name="questionCategory" value="makingObject" id="4">
+        <label for="4">Trouver la personne qui a réalisé l'objet</label>
+
+        <input type="submit" value="Commencer" id="submit"/>
     </form>
-    <span id="reponse"></span>
 </div>
+
+<script type="text/javascript">
+
+</script>
+
 </body>
 </html>
 
