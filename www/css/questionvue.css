@@ -12,14 +12,14 @@
 
 #button1 {
     position: absolute; /* position in the center of the screen */
-    left: 55%;
-    top: 50%;
+    top: 68%;
+    left: 60%;
 }
 
 #infostravaux {
     position: absolute; /* position in the center of the screen */
-    left: 20%;
-    top: 50%;
+    top: 68%;
+    left: 10%;
 }
 
 .modal {
