@@ -192,19 +192,23 @@
                         let duration = endTimer - startTimer;
 
                         let reponses = resultSet.rows;
+                        let playerLevel;
 
                         var len = reponses.length;
                         for (var i = 0; i < len; i++) {
 
+
+
                             if (resultSet.rows.item(i).reponse === result.text) {
                                 window.alert("Bonne réponse");
                                 updateScore(selectedQuestion, duration, true);
-                                // Todo : implémenter un système de score pour adapter le niveau ?
-                                tx.executeSql("UPDATE Joueur SET nbBonneReponses = nbBonneReponses + 1, niveauJoueur = niveauJoueur + 1 WHERE id = ?", [getCookie("userId")])
+                                playerLevel = checkUserLevel();
+                                tx.executeSql("UPDATE Joueur SET nbBonneReponses = nbBonneReponses + 1, niveauJoueur = ? WHERE id = ?", [playerLevel, getCookie("userId")])
                             } else {
                                 window.alert("Mauvaise réponse");
+                                playerLevel = checkUserLevel();
                                 updateScore(selectedQuestion, duration, false);
-                                tx.executeSql("UPDATE Joueur SET niveauJoueur = niveauJoueur - 1 WHERE id = ?", [getCookie("userId")])
+                                tx.executeSql("UPDATE Joueur SET niveauJoueur = ? WHERE id = ?", [playerLevel, getCookie("userId")])
 
 
                             }
@@ -215,8 +219,6 @@
 
                                   if (reponse.reponse === result) {
                                       console.log("Bonne réponse");
-                                      // Todo : vérifier que ça fonctionne
-                                      // Todo : implémenter un système de score pour adapter le niveau ?
                                       tx.executeSql("UPDATE Joueur SET nbBonneReponses = nbBonneReponses + 1, niveauJoueur = niveauJoueur + 1 WHERE id = ?", [getCookie("userId")])
                                   } else {
                                       console.log("Mauvaise réponse");
@@ -237,7 +239,11 @@
 
     function updateScore(question, duration, isTrue) {
         if (isTrue) {
-            score += question.niveauQuestion * ((300000 - duration) / 10000) + 10;
+            if (duration < 300000) {
+                score += question.niveauQuestion * ((300000 - duration) / 10000) + 10;
+            } else {
+                score += 10
+            }
         } else {
             score -= question.niveauQuestion * 10;
         }
