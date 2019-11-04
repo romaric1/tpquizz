@@ -6,7 +6,7 @@
 
     <link rel="stylesheet" type="text/css" href="css/index.css"/>
     <link rel="stylesheet" type="text/css" href="css/buttons.css"/>
-    <link rel="stylesheet" type="text/css" href="css/questionvue.css">
+    <link rel="stylesheet" type="text/css" href="css/questionvue.css"/>
 
     <script type="text/javascript" src="cordova.js"></script>
 </head>
@@ -14,12 +14,12 @@
 <body>
 <div id="div1" class="question"></div>
 <form>
-    <input id="infostravaux" type="button" value="Scanner informations">
-    <input id="button1" type="button" value="Scanner réponse">
+    <input id="infostravaux" type="button" value="Scanner informations"/>
+    <input id="button1" type="button" value="Scanner réponse"/>
 </form>
 
 <div id="myModal" class="modal">
-    <div class="modal-content">
+    <div id="modal-content" class="modal-content">
         <span class="close">&times;</span>
     </div>
 </div>
@@ -38,13 +38,20 @@
      * Récupération de toutes les questions de la catégorie sélectionnée
      */
     function retrieveDB(tx) {
-        tx.executeSql("SELECT * FROM Question WHERE typeQuestion = ?", [getTypeQuestion()], saveQuestions, errorCB);
+        tx.executeSql(
+            "SELECT * FROM Question WHERE typeQuestion = ?",
+            [getTypeQuestion()],
+            saveQuestions,
+            errorCB
+        );
     }
 
     let selectedQuestion;
     let questions;
     let startTimer;
     let endTimer;
+
+    let score = 0;
 
     function saveQuestions(tx, results) {
         questions = Array.from(results.rows);
@@ -71,21 +78,32 @@
      */
     function selectQuestion() {
         let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
-        db.transaction(function (tx) {
-            tx.executeSql("SELECT niveauJoueur FROM Joueur WHERE id = ?", [getCookie("userId")], function (tx, resultSet) {
 
-                selectedQuestion = findBestQuestion(resultSet.rows.item(0).niveauJoueur, questions);
-                questions.splice(questions.indexOf(selectedQuestion), 1);
-                displayQuestion(selectedQuestion);
-                startTimer = new Date();
-            });
+        db.transaction(function (tx) {
+            tx.executeSql(
+                "SELECT niveauJoueur FROM Joueur WHERE id = ?",
+                [getCookie("userId")],
+                function (tx, resultSet) {
+                    selectedQuestion = findBestQuestion(
+                        resultSet.rows.item(0).niveauJoueur,
+                        questions
+                    );
+                    questions.splice(questions.indexOf(selectedQuestion), 1);
+                    displayQuestion(selectedQuestion);
+                    startTimer = new Date();
+                }
+            );
         }, errorCB);
     }
 
     function getCookie(name) {
         let value = "; " + document.cookie;
         let parts = value.split("; " + name + "=");
-        if (parts.length === 2) return parts.pop().split(";").shift();
+        if (parts.length === 2)
+            return parts
+                .pop()
+                .split(";")
+                .shift();
     }
 
     /**
@@ -94,7 +112,6 @@
      * @param questions la liste des questions dans la catégorie sélectionnée
      */
     function findBestQuestion(playerLevel, questions) {
-
         let goodQuestionsList = [];
 
         if (questions.length !== 0) {
@@ -112,7 +129,11 @@
             while (goodQuestionsList.length === 0 || notFind === true) {
                 if (difficultyDifference < 5) {
                     questions.forEach(function (question) {
-                        if (question.niveauQuestion === (playerLevel + difficultyDifference) || question.niveauQuestion === (playerLevel - difficultyDifference)) {
+                        if (
+                            question.niveauQuestion ===
+                            playerLevel + difficultyDifference ||
+                            question.niveauQuestion === playerLevel - difficultyDifference
+                        ) {
                             goodQuestionsList.push(question);
                         }
                     });
@@ -125,7 +146,9 @@
             if (notFind) {
                 return null;
             } else {
-                return goodQuestionsList[Math.floor(Math.random() * goodQuestionsList.length)];
+                return goodQuestionsList[
+                    Math.floor(Math.random() * goodQuestionsList.length)
+                    ];
             }
         }
 
@@ -133,11 +156,11 @@
     }
 
     function displayQuestion(question) {
-
         let myDiv = document.getElementById("div1");
 
         if (question === null || question === undefined) {
-            myDiv.innerHTML = "Aucune question trouvée";
+            window.alert("Fin du jeu, votre score est de : ")
+            window.location.replace("categorySelection.html");
         } else {
             myDiv.innerHTML = question.question;
         }
@@ -146,7 +169,6 @@
     function errorCB(err) {
         alert("Error processing SQL: " + err.message);
     }
-
 
     let modal = document.getElementById("myModal");
     let btnInfo = document.getElementById("infostravaux");
@@ -160,32 +182,75 @@
 
     btnReponse.onclick = function () {
         let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
-        db.transaction(function (tx) {
-            cordova.plugins.barcodeScanner.scan(function (result) {
-                tx.executeSql("SELECT * FROM Reponse WHERE id_question = ?", [selectedQuestion.id], function (tx, resultSet) {
+        cordova.plugins.barcodeScanner.scan(function (result) {
+            db.transaction(function (tx) {
+                tx.executeSql(
+                    "SELECT * FROM Reponse WHERE id_question = ?",
+                    [selectedQuestion.id],
+                    function (tx, resultSet) {
+                        endTimer = new Date();
+                        let duration = endTimer - startTimer;
 
-                    endTimer = new Date();
-                    let duration = endTimer - startTimer;
+                        let reponses = resultSet.rows;
 
-                    let reponses = resultSet.rows;
-                    reponses.forEach(function (reponse) {
-                        if (reponse.reponse === result) {
-                            console.log("Bonne réponse");
-                            // Todo : vérifier que ça fonctionne
-                            // Todo : implémenter un système de score pour adapter le niveau ?
-                            tx.executeSql("UPDATE Joueur SET nbBonneReponses = nbBonneReponses + 1, niveauJoueur = niveauJoueur + 1 WHERE id = ?", [getCookie("userId")])
-                        } else {
-                            console.log("Mauvaise réponse");
-                            tx.executeSql("UPDATE Joueur SET niveauJoueur = niveauJoueur - 1 WHERE id = ?", [getCookie("userId")])
+                        var len = reponses.length;
+                        for (var i = 0; i < len; i++) {
+
+                            if (resultSet.rows.item(i).reponse === result.text) {
+                                window.alert("Bonne réponse");
+                                updateScore(selectedQuestion, duration, true);
+                                // Todo : implémenter un système de score pour adapter le niveau ?
+                                tx.executeSql("UPDATE Joueur SET nbBonneReponses = nbBonneReponses + 1, niveauJoueur = niveauJoueur + 1 WHERE id = ?", [getCookie("userId")])
+                            } else {
+                                window.alert("Mauvaise réponse");
+                                updateScore(selectedQuestion, duration, false);
+                                tx.executeSql("UPDATE Joueur SET niveauJoueur = niveauJoueur - 1 WHERE id = ?", [getCookie("userId")])
+
+
+                            }
                         }
-                    });
+                        ;
+                        /*reponses.forEach(function (reponse) {
+                                 console.log("toto");
 
-                    tx.executeSql("INSERT INTO ReponseJoueur (reponseJoueur, id_joueur, id_question, tempsReponse) VALUES (?, ?, ?, ?)", [result, getCookie("userId"), selectedQuestion.id, duration]);
-                    selectQuestion();
-                }, errorCB);
+                                  if (reponse.reponse === result) {
+                                      console.log("Bonne réponse");
+                                      // Todo : vérifier que ça fonctionne
+                                      // Todo : implémenter un système de score pour adapter le niveau ?
+                                      tx.executeSql("UPDATE Joueur SET nbBonneReponses = nbBonneReponses + 1, niveauJoueur = niveauJoueur + 1 WHERE id = ?", [getCookie("userId")])
+                                  } else {
+                                      console.log("Mauvaise réponse");
+                                      tx.executeSql("UPDATE Joueur SET niveauJoueur = niveauJoueur - 1 WHERE id = ?", [getCookie("userId")])
+                                  }
+                              });*/
+                        tx.executeSql(
+                            "INSERT INTO ReponseJoueur (reponseJoueur, id_joueur, id_question, tempsReponse) VALUES (?, ?, ?, ?)",
+                            [result, getCookie("userId"), selectedQuestion.id, duration]
+                        );
+                        selectQuestion();
+                    },
+                    errorCB
+                );
             });
         });
     };
+
+    function updateScore(question, duration, isTrue) {
+        if (isTrue) {
+            score += question.niveauQuestion * ((300000 - duration) / 10000) + 10;
+        } else {
+            score -= question.niveauQuestion * 10;
+        }
+    }
+
+    function checkUserLevel() {
+        if (score < 200) {
+            let a = score / 50;
+            return parseInt(a, 10) + 1;
+        } else {
+            return 5;
+        }
+    }
 
     span.onclick = function () {
         modal.style.display = "none";
@@ -198,19 +263,21 @@
     };
 
     function scanInfo() {
-        cordova.plugins.barcodeScanner.scan(function (result) {
+        cordova.plugins.barcodeScanner.scan(
+            function (result) {
                 let modalContainer = document.getElementById("modal-content");
                 modalContainer.innerHTML = result.text;
             },
             function (error) {
                 alert(JSON.stringify(error));
-            });
+            }
+        );
     }
 
-    setTimeout(displayScore, 600000);
+    setTimeout(displayScore, 300000);
 
     function displayScore() {
-        window.location.replace("localhost:3000/score.html");
+        alert("Votre score est de : " + score);
     }
 </script>
 </html>
