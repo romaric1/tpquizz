@@ -157,7 +157,8 @@
       let myDiv = document.getElementById("div1");
 
       if (question === null || question === undefined) {
-        myDiv.innerHTML = "Aucune question trouvée";
+        window.alert("Fin du jeu, votre score est de : ")
+        window.location.replace("categorySelection.html");
       } else {
         myDiv.innerHTML = question.question;
       }
