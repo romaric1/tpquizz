@@ -50,8 +50,14 @@
     let questions;
     let startTimer;
     let endTimer;
-
+    let counter = 0;
+    let qrcodePorte = new Map();
+    let scanValue;
     let score = 0;
+
+    qrcodePorte.set('Karell Bertet',135);   
+    qrcodePorte.set('Remy Mullot',136);   
+    qrcodePorte.set('Alain Bouju',137);   
 
     function saveQuestions(tx, results) {
         questions = Array.from(results.rows);
@@ -176,11 +182,13 @@
     let span = document.getElementsByClassName("close")[0];
 
     btnInfo.onclick = function () {
+        counter++;
         modal.style.display = "block";
         scanInfo();
     };
 
     btnReponse.onclick = function () {
+        counter++;
         let db = window.openDatabase("Database", "1.0", "PhoneGap Demo", 200000);
         cordova.plugins.barcodeScanner.scan(function (result) {
             db.transaction(function (tx) {
@@ -195,9 +203,8 @@
                         let playerLevel;
 
                         var len = reponses.length;
+                        scanValue = result.text;
                         for (var i = 0; i < len; i++) {
-
-
 
                             if (resultSet.rows.item(i).reponse === result.text) {
                                 window.alert("Bonne réponse");
@@ -284,6 +291,27 @@
 
     function displayScore() {
         alert("Votre score est de : " + score);
+    }
+
+    setTimeout(adaptability, 100000);
+
+
+
+    function adaptability() {
+        if (counter < 1) {
+            window.alert("Scanner les informations travaux pour trouver la bonne réponse")
+        }
+        else {
+            
+           var reponse = window.prompt("Quel est le numéro de la dernière porte que vous avez scanné ?","");
+            if (reponse==qrcodePorte.get(scanValue)) {
+                window.alert("Bravo la réponse est correcte")
+                score++;
+            }
+            else {
+                window.alert("Mauvaise réponse")
+            }
+        }
     }
 </script>
 </html>
